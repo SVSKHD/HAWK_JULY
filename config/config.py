@@ -9,7 +9,7 @@ strategy_config = {
         "pip_size": 0.0001,
         "lot": 1,
         "max_trades": 6,
-        "threshold":15
+        "threshold":15,
     },
     "USDJPY": {
         "pip_size": 0.01,
