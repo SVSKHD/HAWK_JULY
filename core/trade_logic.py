@@ -2,6 +2,7 @@ from utils import calculate_pip_difference
 from core.profit_guard import has_reached_daily_profit, set_reached_daily_profit
 from core.symbol_guard import has_symbol_been_closed, mark_symbol_as_closed
 from config.config import strategy_config
+from core.trade_executor import place_hedge_trade, close_trade_by_symbol
 
 
 class TradeLogic:
@@ -22,7 +23,7 @@ class TradeLogic:
             self.current,
             self.latest_high,
             self.config.get("pip_size", 0.0001),
-            threshold = self.config.get("threshold")
+            threshold=self.config.get("threshold")
         )
         self.results = {
             "symbol": self.symbol,
@@ -32,10 +33,30 @@ class TradeLogic:
             "pip_diff": data["pip_diff"],
             "direction": data["direction"],
             "immediate_direction": data["immediate_direction"],
-            "threshold":data["threshold"],
+            "threshold": data["threshold"],
             "positions": self.positions
         }
         return self.results
+
+    def has_hedge_pair(self):
+        types = {p["type"] for p in self.positions}
+        return "buy" in types and "sell" in types
+
+    def should_place_hedge(self):
+        if len(self.positions) != 1:
+            return False
+        solo = self.positions[0]
+        if solo["type"] == "buy" and self.current < self.start:
+            return True
+        if solo["type"] == "sell" and self.current > self.start:
+            return True
+        return False
+
+    def should_close_hedge(self):
+        if self.has_hedge_pair():
+            net_profit = sum([p.get("profit", 0) for p in self.positions])
+            return net_profit >= 0
+        return False
 
     def decide_trades(self):
         if has_reached_daily_profit():
@@ -54,10 +75,20 @@ class TradeLogic:
         threshold = self.results.get("threshold", 0)
 
         if self.positions:
-            if threshold >= 2:
+            if self.should_close_hedge():
                 mark_symbol_as_closed(self.symbol)
+                close_trade_by_symbol(self.symbol)
+                return f"[✅] Hedge neutralized. Closed all {self.symbol} positions."
+            elif threshold >= 2:
+                mark_symbol_as_closed(self.symbol)
+                close_trade_by_symbol(self.symbol)
                 return f"[📉] Threshold ≥ 2 reached. Closing positions for {self.symbol} and locking it."
-            return f"[ℹ️] {self.symbol}: Positions present — No close signal yet."
+            elif self.should_place_hedge():
+                solo_type = self.positions[0]["type"]
+                hedge_type = "sell" if solo_type == "buy" else "buy"
+                place_hedge_trade(self.symbol, hedge_type)
+                return f"[🔀] Hedge placed for {self.symbol} in {hedge_type.upper()} direction."
+            return f"[ℹ️] {self.symbol}: Positions present — No close or hedge signal yet."
 
         if threshold >= 1:
             return f"[📈] Threshold ≥ 1 reached. Place trade for {self.symbol}."
@@ -75,11 +106,11 @@ if __name__ == "__main__":
     # Mock values for testing
     symbol = "EURUSD"
     start_price = 1.0820
-    current_price = 1.0850
+    current_price = 1.0800  # simulate market reversal for hedge
     latest_high = 1.0860
-    mock_positions = [{"type": "buy", "volume": 1.0, "profit": 500.0}, {"type": "sell", "volume": 1.0, "profit": 300.0}]
-    mock_deals = [{"type": "buy", "volume": 1.0, "profit": 200.0, "symbol": "EURUSD", "price": 1.0830}]
-    today_profit = 250.0  # From history_deals
+    mock_positions = [{"type": "buy", "volume": 0.5, "profit": -15.0}]  # one losing trade
+    mock_deals = [{"type": "buy", "volume": 0.5, "profit": -15.0, "symbol": "EURUSD", "price": 1.0825}]
+    today_profit = 0.0
 
     trade = TradeLogic(
         symbol=symbol,
