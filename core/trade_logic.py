@@ -1,4 +1,4 @@
-from utils import calculate_pip_difference
+from core.utils import calculate_pip_difference
 from core.profit_guard import has_reached_daily_profit, set_reached_daily_profit
 from core.symbol_guard import has_symbol_been_closed, mark_symbol_as_closed
 from config.config import strategy_config
@@ -101,29 +101,29 @@ class TradeLogic:
         return decision
 
 
-# Test run with mock data for EURUSD
-if __name__ == "__main__":
-    # Mock values for testing
-    symbol = "EURUSD"
-    start_price = 1.0820
-    current_price = 1.0800  # simulate market reversal for hedge
-    latest_high = 1.0860
-    mock_positions = [{"type": "buy", "volume": 0.5, "profit": -15.0}]  # one losing trade
-    mock_deals = [{"type": "buy", "volume": 0.5, "profit": -15.0, "symbol": "EURUSD", "price": 1.0825}]
-    today_profit = 0.0
-
-    trade = TradeLogic(
-        symbol=symbol,
-        start=start_price,
-        current=current_price,
-        latest_high=latest_high,
-        positions=mock_positions,
-        deals=mock_deals,
-        today_profit=today_profit
-    )
-
-    results = trade.get_details()
-    decision = trade.execute_trades()
-
-    print("Trade details:", results)
-    print("Trade decision:", decision)
+# # Test run with mock data for EURUSD
+# if __name__ == "__main__":
+#     # Mock values for testing
+#     symbol = "EURUSD"
+#     start_price = 1.0820
+#     current_price = 1.0800  # simulate market reversal for hedge
+#     latest_high = 1.0860
+#     mock_positions = [{"type": "buy", "volume": 0.5, "profit": -15.0}]  # one losing trade
+#     mock_deals = [{"type": "buy", "volume": 0.5, "profit": -15.0, "symbol": "EURUSD", "price": 1.0825}]
+#     today_profit = 0.0
+#
+#     trade = TradeLogic(
+#         symbol=symbol,
+#         start=start_price,
+#         current=current_price,
+#         latest_high=latest_high,
+#         positions=mock_positions,
+#         deals=mock_deals,
+#         today_profit=today_profit
+#     )
+#
+#     results = trade.get_details()
+#     decision = trade.execute_trades()
+#
+#     print("Trade details:", results)
+#     print("Trade decision:", decision)

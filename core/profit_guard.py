@@ -13,3 +13,7 @@ def has_reached_daily_profit():
 def set_reached_daily_profit():
     with open(PROFIT_STATE_FILE, "w") as f:
         json.dump({"reached": True}, f)
+
+def reset_daily_profit_flag():
+    if os.path.exists(PROFIT_STATE_FILE):
+        os.remove(PROFIT_STATE_FILE)

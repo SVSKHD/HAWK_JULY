@@ -45,3 +45,18 @@ This project is a robust, real-time MetaTrader 5 trading bot that:
 1. ✅ Install MetaTrader5 Python module:
    ```bash
    pip install MetaTrader5
+   
+## flaws
+
+| Feature / Logic               | Current Status    | Notes / Planned Fix                                            |
+| ----------------------------- | ----------------- | -------------------------------------------------------------- |
+| Counter-Hedging logic         | ❌ Not implemented | No third-layer recovery if hedge+original both in loss         |
+| Timeout for stalled positions | ❌ Missing         | Positions stuck in limbo aren't force-closed after duration    |
+| Max drawdown exit             | ❌ Not handled     | No protection if floating loss exceeds critical threshold      |
+| Lot scaling logic             | ❌ Flat lots only  | No adaptive lot size (e.g., 1.5x counter hedge)                |
+| Combined live + closed profit | ❌ Partial         | Only closed deals used for profit guard; live PnL not factored |
+| Backtesting mode              | ❌ Not available   | No offline simulation support with historical data             |
+| Trade logging to file/DB      | ❌ Not implemented | Decisions and trades not logged for post-review                |
+| Daily profit auto-reset       | ❌ Manual reset    | `daily_profit_state.json` must be manually cleared each day    |
+| Trade retry / slippage guard  | ❌ Not present     | No retries or error handling if order fails due to slippage    |
+| Awareness of external trades  | ❌ Not checked     | Manual/external trades may conflict with bot logic             |
