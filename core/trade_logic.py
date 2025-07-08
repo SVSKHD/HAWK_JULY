@@ -2,7 +2,7 @@ from core.utils import calculate_pip_difference
 from core.profit_guard import has_reached_daily_profit, set_reached_daily_profit
 from core.symbol_guard import has_symbol_been_closed, mark_symbol_as_closed
 from config.config import strategy_config
-from core.trade_executor import place_hedge_trade, close_trade_by_symbol
+from core.trade_executor import place_hedge_trade, close_trade_by_symbol, place_trade
 
 
 class TradeLogic:
@@ -90,8 +90,14 @@ class TradeLogic:
                 return f"[🔀] Hedge placed for {self.symbol} in {hedge_type.upper()} direction."
             return f"[ℹ️] {self.symbol}: Positions present — No close or hedge signal yet."
 
-        if threshold >= 1:
-            return f"[📈] Threshold ≥ 1 reached. Place trade for {self.symbol}."
+        if threshold >= 1 and not self.positions:
+            direction = self.results.get("direction")  # use primary trade direction
+            if direction in ["buy", "sell"]:
+                success = place_trade(self.symbol, direction)
+                if success:
+                    return f"[✅] Entry trade placed for {self.symbol} in {direction.upper()} direction."
+                else:
+                    return f"[❌] Failed to place entry trade for {self.symbol}."
 
         return f"[🕒] {self.symbol}: Waiting — Thresholds not met."
 
