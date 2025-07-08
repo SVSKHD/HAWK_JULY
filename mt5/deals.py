@@ -1,5 +1,15 @@
+
 import MetaTrader5 as mt5
 from datetime import datetime
+
+_initialized = False
+
+def ensure_mt5_initialized():
+    global _initialized
+    if not _initialized:
+        if not mt5.initialize():
+            raise RuntimeError("MT5 initialization failed")
+        _initialized = True
 
 
 def get_current_open_positions(symbol=None):
@@ -8,9 +18,7 @@ def get_current_open_positions(symbol=None):
     - Parsed position list with symbol, type, volume, price, profit, ticket
     - Raw MT5 positions object
     """
-    if not mt5.initialize():
-        raise RuntimeError("MT5 not initialized")
-
+    ensure_mt5_initialized()
     raw_positions = mt5.positions_get(symbol=symbol) if symbol else mt5.positions_get()
 
     result = []
@@ -38,8 +46,7 @@ def get_today_profit_from_history():
     - Parsed deals list with symbol, type, volume, profit, price
     - Raw MT5 deals list
     """
-    if not mt5.initialize():
-        raise RuntimeError("MT5 not initialized")
+    ensure_mt5_initialized()
 
     now = datetime.now()
     today_start = datetime(now.year, now.month, now.day)
