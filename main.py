@@ -1,7 +1,6 @@
 import time
 from datetime import datetime
 from pytz import timezone
-
 from mt5.price_fetcher import get_start_price, get_current_price, get_recent_high, get_server_datetime
 from mt5.deals import get_current_open_positions, get_today_profit_from_history
 from core.trade_logic import TradeLogic
@@ -20,10 +19,7 @@ def print_time_banner(server_time):
 def main():
     server_time = get_server_datetime()
     print_time_banner(server_time)
-
     reset_daily_profit_flag()
-
-    # Fetch start prices
     start_prices = {}
     for symbol in symbols:
         try:
@@ -44,7 +40,6 @@ def main():
                 start = start_prices.get(symbol)
                 if start is None:
                     continue
-
                 try:
                     ask, bid = get_current_price(symbol)
                     current = ask
@@ -63,13 +58,11 @@ def main():
                         deals=symbol_deals,
                         today_profit=today_profit
                     )
-
                     logic.get_details()
                     logic.execute_trades()
 
                 except Exception as e:
                     print(f"[⚠️] Failed to process {symbol}: {e}")
-
             time.sleep(1)
 
         except KeyboardInterrupt:
